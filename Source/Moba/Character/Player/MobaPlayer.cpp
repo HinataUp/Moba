@@ -9,6 +9,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "Moba/Character/Controller/MobaPlayerController.h"
+#include "Moba/GAS/MobaAbilitySystemComponent.h"
+#include "Moba/GAS/AttributeSets/MobaAttributeSet.h"
 
 
 // Sets default values
@@ -26,6 +28,9 @@ AMobaPlayer::AMobaPlayer()
 	// 让角色 朝着移动方向旋转身体
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 720.f, 0.f);
+
+	MobaAsc = CreateDefaultSubobject<UMobaAbilitySystemComponent>("Ability System Component");
+	MobaAs = CreateDefaultSubobject<UMobaAttributeSet>("Attribute Set");
 }
 
 void AMobaPlayer::PawnClientRestart()
@@ -89,4 +94,19 @@ FVector AMobaPlayer::GetLookFwdDir() const
 FVector AMobaPlayer::GetMoveFwdDir() const
 {
 	return FVector::CrossProduct(GetLookRightDir(), FVector::UpVector);
+}
+
+UAbilitySystemComponent* AMobaPlayer::GetAbilitySystemComponent() const
+{
+	return MobaAsc;
+}
+
+void AMobaPlayer::ServerSideInit()
+{
+	MobaAsc->InitAbilityActorInfo(this, this);
+	MobaAsc->ApplyInitialEffects();
+}
+
+void AMobaPlayer::ClientSideInit()
+{
 }
