@@ -577,3 +577,10 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/unrealengine,visualstudio,rider,visualstudiocode
+/.idea/.idea.Moba/.idea/.gitignore
+/.vsconfig
+/.idea/.idea.Moba/.idea/indexLayout.xml
+/.idea/.idea.Moba/.idea/vcs.xml
+/Content/Developers/
+/Content/ParagonCrunch/
+/Content/Collections/
