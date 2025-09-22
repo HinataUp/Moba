@@ -13,30 +13,19 @@ class MOBA_API UMobaAbilitySystemComponent : public UAbilitySystemComponent
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this component's properties
-	UMobaAbilitySystemComponent();
-
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
-public:
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
-	                           FActorComponentTickFunction* ThisTickFunction) override;
-
-
 	void ApplyInitialEffects();
+	void GiveInitialAbilities();
+
 private:
-	 // GE 仅作为配置， TSubclassOf指明类型，无需实例
-	UPROPERTY(EditDefaultsOnly,Category="Gameplay Effect")
+	// GE 仅作为配置， TSubclassOf指明类型，无需实例
+	UPROPERTY(EditDefaultsOnly, Category="Gameplay Effect")
 	TArray<TSubclassOf<UGameplayEffect>> InitialEffects;
 
 	// 角色独特的
-	UPROPERTY(EditDefaultsOnly,Category="Gameplay Effect")
-	TArray<TSubclassOf<UGameplayAbility>> Abilitys;
+	UPROPERTY(EditDefaultsOnly, Category="Gameplay Effect")
+	TArray<TSubclassOf<UGameplayAbility>> Abilities;
 
 	// 每个人都有的
-	UPROPERTY(EditDefaultsOnly,Category="Gameplay Effect")
-	TArray<TSubclassOf<UGameplayAbility>> BasicAbilitys;
+	UPROPERTY(EditDefaultsOnly, Category="Gameplay Effect")
+	TArray<TSubclassOf<UGameplayAbility>> BasicAbilities;
 };

@@ -15,7 +15,13 @@ class MOBA_API UGA_Combo : public UMobaGameplayAbilityBase
 	GENERATED_BODY()
 
 public:
+	UGA_Combo();
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                             const FGameplayAbilityActivationInfo ActivationInfo,
 	                             const FGameplayEventData* TriggerEventData);
+
+private:
+	// combo 动画 蒙太奇， 借助 task 完成
+	UPROPERTY(EditDefaultsOnly, Category="Animation")
+	TObjectPtr<UAnimMontage> ComboMontage;
 };

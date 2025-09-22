@@ -165,6 +165,7 @@ void AMobaPlayer::ServerSideInit()
 {
 	MobaAsc->InitAbilityActorInfo(this, this);
 	MobaAsc->ApplyInitialEffects();
+	MobaAsc->GiveInitialAbilities();
 }
 
 void AMobaPlayer::ClientSideInit()
