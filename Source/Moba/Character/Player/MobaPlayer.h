@@ -8,6 +8,7 @@
 
 #include "MobaPlayer.generated.h"
 
+class UWidgetComponent;
 class UMobaAttributeSet;
 class UMobaAbilitySystemComponent;
 struct FGameplayEventData;
@@ -28,11 +29,17 @@ public:
 	// 区分 服务器和 客户端之间所作的事情
 	void ServerSideInit();
 	void ClientSideInit();
-	
+
 	// player 重生后的操作，本质 start 时 也是一次重生，基于次 为玩家激活输入等功能
 	virtual void PawnClientRestart() override;
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+	virtual void BeginPlay() override;
+
+	bool ISLocalControlleredByPlayer() const;
+
+	virtual void PossessedBy(AController* NewController) override;
 
 private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "View")
@@ -75,4 +82,22 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Gameplay Ability")
 	TObjectPtr<UMobaAttributeSet> MobaAs;
 #pragma endregion
+
+	// UI
+private:
+	UPROPERTY(VisibleDefaultsOnly, Category = "UI")
+	TObjectPtr<UWidgetComponent> OverheadUIComponent;
+
+	void ConfigureOverheadWidget();
+
+	// 计时器 辅助 取消tick ,用作检查是否显示敌人血量
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	float HeadStatGaugeVisibilityCheckUpdateGap = 1.f;
+
+	// 距离平方 避开平方根 计算
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	float HeadStatGaugeVisibilityRangeSquared = 1000000.f;
+
+	FTimerHandle HeadStartGaugeVisibilityUpdateTimerHandle;
+	void UpdateHeadGaugeVisibility();
 };

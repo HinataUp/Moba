@@ -3,7 +3,9 @@
 
 #include "MobaPlayerController.h"
 
+#include "Blueprint/UserWidget.h"
 #include "Moba/Character/Player/MobaPlayer.h"
+#include "Moba/UI/MobaGameplayUI.h"
 
 void AMobaPlayerController::OnPossess(APawn* InPawn)
 {
@@ -23,10 +25,25 @@ void AMobaPlayerController::AcknowledgePossession(class APawn* P)
 	if (Mobaplayer)
 	{
 		Mobaplayer->ClientSideInit();
+		SpawnGameplayUI();
 	}
 }
 
 void AMobaPlayerController::OnUnPossess()
 {
 	Super::OnUnPossess();
+}
+
+void AMobaPlayerController::SpawnGameplayUI()
+{
+	if (!IsLocalPlayerController())
+	{
+		return;
+	}
+
+	GameplayUI = CreateWidget<UMobaGameplayUI>(this, GameplayUIClass);
+	if (GameplayUI)
+	{
+		GameplayUI->AddToViewport();
+	}
 }

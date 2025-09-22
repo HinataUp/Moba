@@ -6,6 +6,7 @@
 #include "MobaPlayerControllerBase.h"
 #include "MobaPlayerController.generated.h"
 
+class UMobaGameplayUI;
 class AMobaPlayer;
 /**
  * 
@@ -21,6 +22,14 @@ public:
 	virtual void OnUnPossess() override;
 
 private:
+	void SpawnGameplayUI();
+
 	UPROPERTY()
 	TObjectPtr<AMobaPlayer> Mobaplayer;
+
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	TSubclassOf<UMobaGameplayUI> GameplayUIClass;
+
+	UPROPERTY()
+	TObjectPtr<UMobaGameplayUI> GameplayUI;
 };
