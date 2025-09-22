@@ -31,4 +31,12 @@ private:
 	 // GE 仅作为配置， TSubclassOf指明类型，无需实例
 	UPROPERTY(EditDefaultsOnly,Category="Gameplay Effect")
 	TArray<TSubclassOf<UGameplayEffect>> InitialEffects;
+
+	// 角色独特的
+	UPROPERTY(EditDefaultsOnly,Category="Gameplay Effect")
+	TArray<TSubclassOf<UGameplayAbility>> Abilitys;
+
+	// 每个人都有的
+	UPROPERTY(EditDefaultsOnly,Category="Gameplay Effect")
+	TArray<TSubclassOf<UGameplayAbility>> BasicAbilitys;
 };
