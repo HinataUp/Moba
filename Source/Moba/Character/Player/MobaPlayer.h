@@ -8,6 +8,7 @@
 
 #include "MobaPlayer.generated.h"
 
+enum class EMobaAbilityInputID : uint8;
 class UWidgetComponent;
 class UMobaAttributeSet;
 class UMobaAbilitySystemComponent;
@@ -37,7 +38,7 @@ public:
 
 	virtual void BeginPlay() override;
 
-	bool ISLocalControlleredByPlayer() const;
+	bool IsLocalControlledByPlayer() const;
 
 	virtual void PossessedBy(AController* NewController) override;
 
@@ -61,9 +62,13 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
 
-	void HandleLookInput(const FInputActionValue& InputActionValue);
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TMap<EMobaAbilityInputID, UInputAction*> GameplayAbilityInputActions;
 
+	void HandleLookInput(const FInputActionValue& InputActionValue);
 	void HandleMoveInput(const FInputActionValue& InputActionValue);
+	void HandleAbilityInput(const FInputActionValue& InputActionValue, EMobaAbilityInputID InputID);
+
 	FVector GetLookRightDir() const;
 	FVector GetLookFwdDir() const;
 	FVector GetMoveFwdDir() const;

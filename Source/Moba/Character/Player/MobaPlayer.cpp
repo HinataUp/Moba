@@ -63,6 +63,13 @@ void AMobaPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		InputComp->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMobaPlayer::Jump);
 		InputComp->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMobaPlayer::HandleMoveInput);
 		InputComp->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMobaPlayer::HandleLookInput);
+
+		// GAS 输入绑定
+		for (const TPair<EMobaAbilityInputID, UInputAction*>& InputActionPair : GameplayAbilityInputActions)
+		{
+			InputComp->BindAction(InputActionPair.Value, ETriggerEvent::Triggered, this,
+			                      &AMobaPlayer::HandleAbilityInput, InputActionPair.Key);
+		}
 	}
 }
 
@@ -72,7 +79,7 @@ void AMobaPlayer::BeginPlay()
 	ConfigureOverheadWidget();
 }
 
-bool AMobaPlayer::ISLocalControlleredByPlayer() const
+bool AMobaPlayer::IsLocalControlledByPlayer() const
 {
 	return GetController() && GetController()->IsLocalPlayerController();
 }
@@ -100,6 +107,18 @@ void AMobaPlayer::HandleMoveInput(const FInputActionValue& InputActionValue)
 	// 归一化 任何一个方向都是单位移动 ，避免斜角过快
 	MoveValue.Normalize();
 	AddMovementInput(GetMoveFwdDir() * MoveValue.Y + GetLookRightDir() * MoveValue.X);
+}
+
+void AMobaPlayer::HandleAbilityInput(const FInputActionValue& InputActionValue, EMobaAbilityInputID InputID)
+{
+	if (InputActionValue.Get<bool>())
+	{
+		GetAbilitySystemComponent()->AbilityLocalInputPressed(static_cast<int32>(InputID));
+	}
+	else
+	{
+		GetAbilitySystemComponent()->AbilityLocalInputReleased(static_cast<int32>(InputID));
+	}
 }
 
 // EAxis::Y
@@ -135,7 +154,7 @@ void AMobaPlayer::ConfigureOverheadWidget()
 		return;
 	}
 	// 本地玩家 不显示 头顶UI （血量）
-	if (ISLocalControlleredByPlayer())
+	if (IsLocalControlledByPlayer())
 	{
 		OverheadUIComponent->SetHiddenInGame(true);
 		return;

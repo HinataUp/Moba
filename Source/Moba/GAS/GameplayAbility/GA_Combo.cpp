@@ -3,6 +3,8 @@
 
 #include "GA_Combo.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
 #include "Moba/Utilities/MobaGameplayTags.h"
 
 UGA_Combo::UGA_Combo()
@@ -40,5 +42,72 @@ void UGA_Combo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 
 		// 必须调用这个函数吗实际去激活蒙太奇 ，否则无任何效果
 		PlayMontageAndWait->ReadyForActivation();
+
+		// 连击触发 等待事件，这里不要写错成end 了 否则 就只能接收到end 事件了
+		UAbilityTask_WaitGameplayEvent* WaitGameplayEvent = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+			this, GetComboChangedEventTag(), nullptr, false
+			, false);
+		WaitGameplayEvent->EventReceived.AddDynamic(this, &UGA_Combo::ComboChangedEventReceived);
+		WaitGameplayEvent->ReadyForActivation();
 	}
+	SetupWaitComboInputPress();
+}
+
+FGameplayTag UGA_Combo::GetComboChangedEventTag()
+{
+	return FMobaGameplayTags::Ability_Combo_Change;
+}
+
+FGameplayTag UGA_Combo::GetComboChangedEventEndTag()
+{
+	return FMobaGameplayTags::Ability_Combo_Change_End;
+}
+
+void UGA_Combo::SetupWaitComboInputPress()
+{
+	UAbilityTask_WaitInputPress* WaitInputPress = UAbilityTask_WaitInputPress::WaitInputPress(this);
+	WaitInputPress->OnPress.AddDynamic(this, &UGA_Combo::HandleInputPress);
+	WaitInputPress->ReadyForActivation();
+}
+
+void UGA_Combo::HandleInputPress(float TimeWaited)
+{
+	SetupWaitComboInputPress();
+	TryCommitCombo();
+}
+
+void UGA_Combo::TryCommitCombo()
+{
+	if (NextComboName == NAME_None)
+	{
+		return;
+	}
+
+	UAnimInstance* OwnerAnimInst = GetOwnerAnimInstance();
+	if (!OwnerAnimInst)
+	{
+		return;
+	}
+	OwnerAnimInst->Montage_SetNextSection(OwnerAnimInst->Montage_GetCurrentSection(ComboMontage),
+	                                      NextComboName, ComboMontage);
+}
+
+// 一个是播放 蒙太奇到指定帧 通知 可以连击， 一个时 end tag标志 不允许连击。
+// 只允许 通知下一个连击 tag  到 end 之间 内可以触发连击
+void UGA_Combo::ComboChangedEventReceived(FGameplayEventData Data)
+{
+	FGameplayTag EventTag = Data.EventTag;
+	// UE_LOG(LogTemp, Warning, TEXT("EventTag  : %s"), *EventTag.ToString());
+	// 这里是相应end tag
+	if (EventTag == GetComboChangedEventEndTag())
+	{
+		NextComboName = NAME_None;
+		UE_LOG(LogTemp, Warning, TEXT("Next combo is cleared"));
+		return;
+	}
+	TArray<FName> TagNames;
+	// 仅仅是把标签分割 然后获取最后一个tag 分割eventtag 第二个是存入的数组
+	UGameplayTagsManager::Get().SplitGameplayTagFName(EventTag, TagNames);
+	NextComboName = TagNames.Last();
+	UE_LOG(LogTemp, Warning, TEXT("next combo is now: %s"), *NextComboName.ToString());
 }

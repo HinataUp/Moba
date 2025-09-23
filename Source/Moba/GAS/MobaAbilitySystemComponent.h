@@ -7,6 +7,8 @@
 #include "MobaAbilitySystemComponent.generated.h"
 
 
+enum class EMobaAbilityInputID : uint8;
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MOBA_API UMobaAbilitySystemComponent : public UAbilitySystemComponent
 {
@@ -23,9 +25,9 @@ private:
 
 	// 角色独特的
 	UPROPERTY(EditDefaultsOnly, Category="Gameplay Effect")
-	TArray<TSubclassOf<UGameplayAbility>> Abilities;
+	TMap<EMobaAbilityInputID, TSubclassOf<UGameplayAbility>> Abilities;
 
-	// 每个人都有的
+	// 每个人都有的技能
 	UPROPERTY(EditDefaultsOnly, Category="Gameplay Effect")
-	TArray<TSubclassOf<UGameplayAbility>> BasicAbilities;
+	TMap<EMobaAbilityInputID, TSubclassOf<UGameplayAbility>> BasicAbilities;
 };

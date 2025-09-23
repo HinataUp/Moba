@@ -13,4 +13,7 @@ UCLASS()
 class MOBA_API UMobaGameplayAbilityBase : public UGameplayAbility
 {
 	GENERATED_BODY()
+
+protected:
+	UAnimInstance* GetOwnerAnimInstance() const;
 };
