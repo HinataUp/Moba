@@ -22,7 +22,7 @@ public:
 
 	static FGameplayTag GetComboChangedEventTag();
 	static FGameplayTag GetComboChangedEventEndTag();
-
+	static FGameplayTag GetComboTargetEventTag();
 private:
 	// 连击功能
 	void SetupWaitComboInputPress();
@@ -32,6 +32,18 @@ private:
 
 	void TryCommitCombo();
 
+	// 伤害
+	UFUNCTION()
+	void DoDamage(FGameplayEventData Data);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effect")
+	TSubclassOf<UGameplayEffect> DefaultDamageEffect;
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effect")
+	TMap<FName, TSubclassOf<UGameplayEffect>> DamageEffectMap;
+
+	TSubclassOf<UGameplayEffect> GetDamageEffectForCurrentCombo() const;
+	
+	
 	// combo 动画 蒙太奇， 借助 task 完成
 	UPROPERTY(EditDefaultsOnly, Category="Animation")
 	TObjectPtr<UAnimMontage> ComboMontage;

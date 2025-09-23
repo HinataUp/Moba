@@ -16,4 +16,9 @@ class MOBA_API UMobaGameplayAbilityBase : public UGameplayAbility
 
 protected:
 	UAnimInstance* GetOwnerAnimInstance() const;
+
+	// 公用的sweep检测函数
+	TArray<FHitResult> GetHitResultFromSweepLocationTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
+	                                                           float SphereSweepRadius = 30.f, bool bDrawDebug = false,
+	                                                           bool bIgnoreSelf = true) const;
 };

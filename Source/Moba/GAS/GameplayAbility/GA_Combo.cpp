@@ -2,6 +2,8 @@
 
 
 #include "GA_Combo.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
@@ -50,6 +52,14 @@ void UGA_Combo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 		WaitGameplayEvent->EventReceived.AddDynamic(this, &UGA_Combo::ComboChangedEventReceived);
 		WaitGameplayEvent->ReadyForActivation();
 	}
+	if (K2_HasAuthority())
+	{
+		UAbilityTask_WaitGameplayEvent* WaitTargetingEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+			this, GetComboTargetEventTag());
+		WaitTargetingEventTask->EventReceived.AddDynamic(this, &UGA_Combo::DoDamage);
+		WaitTargetingEventTask->ReadyForActivation();
+	}
+
 	SetupWaitComboInputPress();
 }
 
@@ -61,6 +71,11 @@ FGameplayTag UGA_Combo::GetComboChangedEventTag()
 FGameplayTag UGA_Combo::GetComboChangedEventEndTag()
 {
 	return FMobaGameplayTags::Ability_Combo_Change_End;
+}
+
+FGameplayTag UGA_Combo::GetComboTargetEventTag()
+{
+	return FMobaGameplayTags::Ability_Combo_Damage;
 }
 
 void UGA_Combo::SetupWaitComboInputPress()
@@ -90,6 +105,40 @@ void UGA_Combo::TryCommitCombo()
 	}
 	OwnerAnimInst->Montage_SetNextSection(OwnerAnimInst->Montage_GetCurrentSection(ComboMontage),
 	                                      NextComboName, ComboMontage);
+}
+
+void UGA_Combo::DoDamage(FGameplayEventData Data)
+{
+	TArray<FHitResult> HitResults = GetHitResultFromSweepLocationTargetData(Data.TargetData,
+	                                                                        30.f,
+	                                                                        true,
+	                                                                        true);
+
+	for (const FHitResult& HitResult : HitResults)
+	{
+		TSubclassOf<UGameplayEffect> GameplayEffect = GetDamageEffectForCurrentCombo();
+		FGameplayEffectSpecHandle EfffectSpecHandle = MakeOutgoingGameplayEffectSpec(
+			GameplayEffect, GetAbilityLevel(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo()));
+
+		ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo,
+		                                EfffectSpecHandle,
+		                                UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(
+			                                HitResult.GetActor()));
+	}
+}
+
+TSubclassOf<UGameplayEffect> UGA_Combo::GetDamageEffectForCurrentCombo() const
+{
+	if (UAnimInstance* OwnerAnimInstance = GetOwnerAnimInstance())
+	{
+		FName CurrentSectionName = OwnerAnimInstance->Montage_GetCurrentSection(ComboMontage);
+		if (const TSubclassOf<UGameplayEffect>* FoundEffectPtr = DamageEffectMap.Find(CurrentSectionName))
+		{
+			return *FoundEffectPtr;
+		}
+	}
+
+	return DefaultDamageEffect;
 }
 
 // 一个是播放 蒙太奇到指定帧 通知 可以连击， 一个时 end tag标志 不允许连击。
