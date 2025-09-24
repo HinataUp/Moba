@@ -42,7 +42,9 @@ private:
 	TMap<FName, TSubclassOf<UGameplayEffect>> DamageEffectMap;
 
 	TSubclassOf<UGameplayEffect> GetDamageEffectForCurrentCombo() const;
-	
+
+	UPROPERTY(EditDefaultsOnly, Category = "Targetting")
+	float TargetSweepSphereRadius = 30.f;
 	
 	// combo 动画 蒙太奇， 借助 task 完成
 	UPROPERTY(EditDefaultsOnly, Category="Animation")

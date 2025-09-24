@@ -109,19 +109,31 @@ void UGA_Combo::TryCommitCombo()
 
 void UGA_Combo::DoDamage(FGameplayEventData Data)
 {
+	// 这里关闭 debug 绘制 检测轨迹了
 	TArray<FHitResult> HitResults = GetHitResultFromSweepLocationTargetData(Data.TargetData,
-	                                                                        30.f,
-	                                                                        true,
+	                                                                        TargetSweepSphereRadius,
+	                                                                        false,
 	                                                                        true);
 
 	for (const FHitResult& HitResult : HitResults)
 	{
 		TSubclassOf<UGameplayEffect> GameplayEffect = GetDamageEffectForCurrentCombo();
-		FGameplayEffectSpecHandle EfffectSpecHandle = MakeOutgoingGameplayEffectSpec(
+		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(
 			GameplayEffect, GetAbilityLevel(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo()));
 
-		ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo,
-		                                EfffectSpecHandle,
+
+		// 由于 sweep 命中的结果再 context 中，我们需要hit命中的对象 用于 cue播放 命中时的 特效
+		// 然后handle 设置 这个context 最中会被应用到 ge spec  to  target 上
+		FGameplayEffectContextHandle EffectContext = MakeEffectContext(GetCurrentAbilitySpecHandle(),
+		                                                               GetCurrentActorInfo());
+		EffectContext.AddHitResult(HitResult);
+		EffectSpecHandle.Data->SetContext(EffectContext);
+
+		
+		ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(),
+		                                CurrentActorInfo,
+		                                CurrentActivationInfo,
+		                                EffectSpecHandle,
 		                                UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(
 			                                HitResult.GetActor()));
 	}

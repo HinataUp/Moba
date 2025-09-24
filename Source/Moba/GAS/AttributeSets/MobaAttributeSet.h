@@ -35,6 +35,14 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
+	// 在对属性进行任何修改之前调用。这比 PreAttributeModifyPostAttribute 修改的级别低。
+	// 这里没有提供额外的上下文，因为任何东西都可以触发它。执行的效果、基于持续时间的效果、移除的效果、应用免疫、更改叠加规则等。
+	// 这个函数旨在强制执行诸如“Health = Clamp（Health， 0， MaxHealth）”之类的内容
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	// 在执行 GameplayEffect 以修改属性的基本值后立即调用。无法再进行更改。请注意，这仅在“执行”期间调用。
+	// 例如，对属性的“基本值”的修改。在应用 GameplayEffect 期间不会调用它，例如 5 秒 +10 移动速度增益。
+	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
+
 private:
 	/*
 	 * FGameplayAttributeData 一个结构体，包含 base  和cur 两个value
