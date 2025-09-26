@@ -14,6 +14,7 @@ class MOBA_API UMobaAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
 
+	UMobaAbilitySystemComponent();
 public:
 	void ApplyInitialEffects();
 	void GiveInitialAbilities();
@@ -30,4 +31,9 @@ private:
 	// 每个人都有的技能
 	UPROPERTY(EditDefaultsOnly, Category="Gameplay Effect")
 	TMap<EMobaAbilityInputID, TSubclassOf<UGameplayAbility>> BasicAbilities;
+
+	// 角色死亡
+	void HealthUpdated(const FOnAttributeChangeData& ChangeData);
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects")
+	TSubclassOf<UGameplayEffect> DeathEffect;
 };

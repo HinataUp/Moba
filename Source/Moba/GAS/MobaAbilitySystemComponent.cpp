@@ -3,6 +3,14 @@
 
 #include "MobaAbilitySystemComponent.h"
 
+#include "AttributeSets/MobaAttributeSet.h"
+
+UMobaAbilitySystemComponent::UMobaAbilitySystemComponent()
+{
+	GetGameplayAttributeValueChangeDelegate(UMobaAttributeSet::GetHealthAttribute()).AddUObject(
+		this, &UMobaAbilitySystemComponent::HealthUpdated);
+}
+
 void UMobaAbilitySystemComponent::ApplyInitialEffects()
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority())
@@ -30,5 +38,16 @@ void UMobaAbilitySystemComponent::GiveInitialAbilities()
 	for (const TPair<EMobaAbilityInputID, TSubclassOf<UGameplayAbility>>& AbilityPair : BasicAbilities)
 	{
 		GiveAbility(FGameplayAbilitySpec(AbilityPair.Value, 1, static_cast<int32>(AbilityPair.Key), nullptr));
+	}
+}
+
+// 服务器 才有权决定生死
+void UMobaAbilitySystemComponent::HealthUpdated(const FOnAttributeChangeData& ChangeData)
+{
+	if (!GetOwner())return;
+	if (ChangeData.NewValue <= 0 && GetOwner()->HasAuthority() && DeathEffect)
+	{
+		FGameplayEffectSpecHandle GameplayEffectSpecHandle = MakeOutgoingSpec(DeathEffect, 1, MakeEffectContext());
+		ApplyGameplayEffectSpecToSelf(*GameplayEffectSpecHandle.Data.Get());
 	}
 }

@@ -8,12 +8,9 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
-#include "Components/WidgetComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Moba/Character/Controller/MobaPlayerController.h"
-#include "Moba/GAS/MobaAbilitySystemComponent.h"
 #include "Moba/GAS/AttributeSets/MobaAttributeSet.h"
-#include "Moba/UI/OverHeadStatsGauge.h"
+
 
 
 // Sets default values
@@ -31,12 +28,6 @@ AMobaPlayer::AMobaPlayer()
 	// 让角色 朝着移动方向旋转身体
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 720.f, 0.f);
-
-	MobaAsc = CreateDefaultSubobject<UMobaAbilitySystemComponent>("Ability System Component");
-	MobaAs = CreateDefaultSubobject<UMobaAttributeSet>("Attribute Set");
-
-	OverheadUIComponent = CreateDefaultSubobject<UWidgetComponent>("UI  Component");
-	OverheadUIComponent->SetupAttachment(GetRootComponent());
 }
 
 void AMobaPlayer::PawnClientRestart()
@@ -76,22 +67,6 @@ void AMobaPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 void AMobaPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-	ConfigureOverheadWidget();
-}
-
-bool AMobaPlayer::IsLocalControlledByPlayer() const
-{
-	return GetController() && GetController()->IsLocalPlayerController();
-}
-
-void AMobaPlayer::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-	// 初始化ai控制器
-	if (NewController && !NewController->IsLocalPlayerController())
-	{
-		ServerSideInit();
-	}
 }
 
 void AMobaPlayer::HandleLookInput(const FInputActionValue& InputActionValue)
@@ -140,54 +115,4 @@ FVector AMobaPlayer::GetLookFwdDir() const
 FVector AMobaPlayer::GetMoveFwdDir() const
 {
 	return FVector::CrossProduct(GetLookRightDir(), FVector::UpVector);
-}
-
-UAbilitySystemComponent* AMobaPlayer::GetAbilitySystemComponent() const
-{
-	return MobaAsc;
-}
-
-void AMobaPlayer::ConfigureOverheadWidget()
-{
-	if (!OverheadUIComponent)
-	{
-		return;
-	}
-	// 本地玩家 不显示 头顶UI （血量）
-	if (IsLocalControlledByPlayer())
-	{
-		OverheadUIComponent->SetHiddenInGame(true);
-		return;
-	}
-	if (UOverHeadStatsGauge* OverHeadStatsGauge = Cast<UOverHeadStatsGauge>(OverheadUIComponent->GetUserWidgetObject()))
-	{
-		OverHeadStatsGauge->ConfigureWithASC(GetAbilitySystemComponent());
-		OverheadUIComponent->SetHiddenInGame(false);
-		GetWorldTimerManager().ClearTimer(HeadStartGaugeVisibilityUpdateTimerHandle);
-		GetWorldTimerManager().SetTimer(HeadStartGaugeVisibilityUpdateTimerHandle, this,
-		                                &AMobaPlayer::UpdateHeadGaugeVisibility, HeadStatGaugeVisibilityCheckUpdateGap,
-		                                true);
-	}
-}
-
-void AMobaPlayer::UpdateHeadGaugeVisibility()
-{
-	APawn* LocalPlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (LocalPlayerPawn)
-	{
-		float DistSquared = FVector::DistSquared(GetActorLocation(), LocalPlayerPawn->GetActorLocation());
-		OverheadUIComponent->SetHiddenInGame(DistSquared > HeadStatGaugeVisibilityRangeSquared);
-	}
-}
-
-void AMobaPlayer::ServerSideInit()
-{
-	MobaAsc->InitAbilityActorInfo(this, this);
-	MobaAsc->ApplyInitialEffects();
-	MobaAsc->GiveInitialAbilities();
-}
-
-void AMobaPlayer::ClientSideInit()
-{
-	MobaAsc->InitAbilityActorInfo(this, this);
 }
