@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "GenericTeamAgentInterface.h"
 #include "GameFramework/Character.h"
 #include "MobaCharacterBase.generated.h"
 
@@ -13,7 +14,7 @@ class UMobaAttributeSet;
 class UMobaAbilitySystemComponent;
 
 UCLASS()
-class MOBA_API AMobaCharacterBase : public ACharacter, public IAbilitySystemInterface
+class MOBA_API AMobaCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -24,12 +25,9 @@ public:
 	void ServerSideInit();
 	void ClientSideInit();
 
-	// player 重生后的操作，本质 start 时 也是一次重生，基于次 为玩家激活输入等功能
-	virtual void PawnClientRestart() override;
-
 	bool IsLocalControlledByPlayer() const;
-
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -74,8 +72,13 @@ private:
 	FTimerHandle HeadStartGaugeVisibilityUpdateTimerHandle;
 	void UpdateHeadGaugeVisibility() const;
 
-	//  Death and Respawn 
 private:
+	//  Death and Respawn
+	FTransform MeshRelativeTransform;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Death")
+	float DeathMontageFinishTimeShift = -0.8f;
+
 	void SetStatusGaugeEnabled(bool bIsEnabled);
 	UPROPERTY(EditDefaultsOnly, Category = "Death")
 	UAnimMontage* DeathMontage;
@@ -83,9 +86,27 @@ private:
 	void PlayDeathAnimation();
 	void BindGASChangeDelegates();
 	void DeathTagUpdated(const FGameplayTag Tag, int32 NewCount);
-	// Death and Respawn
+
 	void StartDeathSequence();
 	void Respawn();
 	virtual void OnDead();
 	virtual void OnRespawn();
+
+	// 布娃娃系统
+	FTimerHandle DeathMontageTimerHandle;
+
+	void DeathMontageFinished();
+	void SetRagdollEnabled(bool bIsEnabled);
+
+	
+// Team
+public:
+	/** Assigns Team Agent to given TeamID */
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;
+	
+	/** Retrieve team identifier in form of FGenericTeamId */
+	virtual FGenericTeamId GetGenericTeamId() const override;
+private:
+	UPROPERTY(Replicated)
+	FGenericTeamId TeamID;
 };

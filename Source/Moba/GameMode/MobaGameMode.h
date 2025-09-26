@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "MobaGameModeBase.h"
+#include "GenericTeamAgentInterface.h"
 #include "MobaGameMode.generated.h"
+
 
 /**
  * 
@@ -13,4 +15,15 @@ UCLASS()
 class MOBA_API AMobaGameMode : public AMobaGameModeBase
 {
 	GENERATED_BODY()
+
+public:
+	virtual APlayerController* SpawnPlayerController(ENetRole InRemoteRole, const FString& Options) override;
+
+private:
+	FGenericTeamId GetTeamIDForPlayer(const APlayerController* PlayerController) const;
+
+	AActor* FIndNextStartSpotForTeam(const FGenericTeamId& TeamID) const;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Team")
+	TMap<FGenericTeamId, FName> TeamStartSoptTagMap;
 };

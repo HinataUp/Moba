@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Moba/Character/Player/MobaPlayer.h"
 #include "Moba/UI/MobaGameplayUI.h"
+#include "Net/UnrealNetwork.h"
 
 void AMobaPlayerController::OnPossess(APawn* InPawn)
 {
@@ -14,6 +15,7 @@ void AMobaPlayerController::OnPossess(APawn* InPawn)
 	if (Mobaplayer)
 	{
 		Mobaplayer->ServerSideInit();
+		Mobaplayer->SetGenericTeamId(TeamID);
 	}
 }
 
@@ -32,6 +34,22 @@ void AMobaPlayerController::AcknowledgePossession(class APawn* P)
 void AMobaPlayerController::OnUnPossess()
 {
 	Super::OnUnPossess();
+}
+
+void AMobaPlayerController::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+	TeamID = NewTeamID;
+}
+
+FGenericTeamId AMobaPlayerController::GetGenericTeamId() const
+{
+	return TeamID;
+}
+
+void AMobaPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AMobaPlayerController, TeamID);
 }
 
 void AMobaPlayerController::SpawnGameplayUI()

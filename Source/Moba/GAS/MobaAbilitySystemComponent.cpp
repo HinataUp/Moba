@@ -41,13 +41,28 @@ void UMobaAbilitySystemComponent::GiveInitialAbilities()
 	}
 }
 
+// 私有 公用函数
+void UMobaAbilitySystemComponent::AuthApplyGameplayEffect(const TSubclassOf<UGameplayEffect>& GameplayEffect, int Level)
+{
+	if (GetOwner() && GetOwner()->HasAuthority())
+	{
+		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingSpec(GameplayEffect, Level, MakeEffectContext());
+		ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
+	}
+}
+
+// 重生后应用 GE
+void UMobaAbilitySystemComponent::ApplyFullStatEffect()
+{
+	AuthApplyGameplayEffect(FullStatEffect);
+}
+
 // 服务器 才有权决定生死
 void UMobaAbilitySystemComponent::HealthUpdated(const FOnAttributeChangeData& ChangeData)
 {
 	if (!GetOwner())return;
 	if (ChangeData.NewValue <= 0 && GetOwner()->HasAuthority() && DeathEffect)
 	{
-		FGameplayEffectSpecHandle GameplayEffectSpecHandle = MakeOutgoingSpec(DeathEffect, 1, MakeEffectContext());
-		ApplyGameplayEffectSpecToSelf(*GameplayEffectSpecHandle.Data.Get());
+		AuthApplyGameplayEffect(DeathEffect);
 	}
 }

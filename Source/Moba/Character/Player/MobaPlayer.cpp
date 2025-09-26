@@ -12,7 +12,6 @@
 #include "Moba/GAS/AttributeSets/MobaAttributeSet.h"
 
 
-
 // Sets default values
 AMobaPlayer::AMobaPlayer()
 {
@@ -115,4 +114,20 @@ FVector AMobaPlayer::GetLookFwdDir() const
 FVector AMobaPlayer::GetMoveFwdDir() const
 {
 	return FVector::CrossProduct(GetLookRightDir(), FVector::UpVector);
+}
+
+void AMobaPlayer::OnDead()
+{
+	if (AMobaPlayerController* PlayerController = GetController<AMobaPlayerController>())
+	{
+		DisableInput(PlayerController);
+	}
+}
+
+void AMobaPlayer::OnRespawn()
+{
+	if (AMobaPlayerController* PlayerController = GetController<AMobaPlayerController>())
+	{
+		EnableInput(PlayerController);
+	}
 }

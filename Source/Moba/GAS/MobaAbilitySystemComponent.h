@@ -18,8 +18,11 @@ class MOBA_API UMobaAbilitySystemComponent : public UAbilitySystemComponent
 public:
 	void ApplyInitialEffects();
 	void GiveInitialAbilities();
+	void ApplyFullStatEffect();
 
 private:
+	void AuthApplyGameplayEffect(const TSubclassOf<UGameplayEffect>& GameplayEffect, int Level = 1);
+	
 	// GE 仅作为配置， TSubclassOf指明类型，无需实例
 	UPROPERTY(EditDefaultsOnly, Category="Gameplay Effect")
 	TArray<TSubclassOf<UGameplayEffect>> InitialEffects;
@@ -36,4 +39,7 @@ private:
 	void HealthUpdated(const FOnAttributeChangeData& ChangeData);
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects")
 	TSubclassOf<UGameplayEffect> DeathEffect;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects")
+	TSubclassOf<UGameplayEffect> FullStatEffect;
 };

@@ -25,11 +25,11 @@ class MOBA_API AMobaPlayer : public AMobaCharacterBase
 
 public:
 	AMobaPlayer();
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void BeginPlay() override;
 
 	// player 重生后的操作，本质 start 时 也是一次重生，基于次 为玩家激活输入等功能
 	virtual void PawnClientRestart() override;
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-	virtual void BeginPlay() override;
 
 private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "View")
@@ -63,4 +63,8 @@ private:
 	FVector GetMoveFwdDir() const;
 
 #pragma endregion
+
+	// Death and Respawn
+	virtual void OnDead() override;
+	virtual void OnRespawn() override;
 };

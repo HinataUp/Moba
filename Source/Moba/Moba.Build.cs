@@ -13,7 +13,7 @@ public class Moba : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"EnhancedInput", "GameplayAbilities", "GameplayTags", "GameplayTasks", "GameFeatures", "Networking",
-			"OnlineSubsystem", "UMG", "Slate", "SlateCore"
+			"OnlineSubsystem", "UMG", "Slate", "SlateCore", "AIModule"
 		});
 
 		// Uncomment if you are using Slate UI

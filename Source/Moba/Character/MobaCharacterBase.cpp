@@ -12,6 +12,7 @@
 #include "Moba/GAS/AttributeSets/MobaAttributeSet.h"
 #include "Moba/UI/OverHeadStatsGauge.h"
 #include "Moba/Utilities/MobaGameplayTags.h"
+#include "Net/UnrealNetwork.h"
 
 
 // Sets default values
@@ -35,6 +36,7 @@ void AMobaCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	ConfigureOverheadWidget();
+	MeshRelativeTransform = GetMesh()->GetRelativeTransform();
 }
 
 // Called every frame
@@ -103,10 +105,6 @@ void AMobaCharacterBase::ClientSideInit()
 	MobaAsc->InitAbilityActorInfo(this, this);
 }
 
-void AMobaCharacterBase::PawnClientRestart()
-{
-	Super::PawnClientRestart();
-}
 
 bool AMobaCharacterBase::IsLocalControlledByPlayer() const
 {
@@ -123,6 +121,12 @@ void AMobaCharacterBase::PossessedBy(AController* NewController)
 	}
 }
 
+void AMobaCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AMobaCharacterBase,TeamID);
+}
+
 void AMobaCharacterBase::BindGASChangeDelegates()
 {
 	if (MobaAsc)
@@ -132,15 +136,6 @@ void AMobaCharacterBase::BindGASChangeDelegates()
 	}
 }
 
-void AMobaCharacterBase::StartDeathSequence()
-{
-	OnDead();
-	PlayDeathAnimation();
-	SetStatusGaugeEnabled(false);
-
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-}
 
 void AMobaCharacterBase::UpdateHeadGaugeVisibility() const
 {
@@ -169,13 +164,38 @@ void AMobaCharacterBase::PlayDeathAnimation()
 	if (DeathMontage)
 	{
 		PlayAnimMontage(DeathMontage);
+		float MontageDuration = PlayAnimMontage(DeathMontage);
+		GetWorldTimerManager().SetTimer(DeathMontageTimerHandle, this,
+		                                &AMobaCharacterBase::DeathMontageFinished,
+		                                MontageDuration + DeathMontageFinishTimeShift);
 	}
 }
 
+void AMobaCharacterBase::StartDeathSequence()
+{
+	OnDead();
+	PlayDeathAnimation();
+	SetStatusGaugeEnabled(false);
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
 
+
+// 重生后 启用 物理碰撞查询 以及 设置人物 恢复为 walk 状态
+// 禁用蒙太奇动画，并重新启用 头顶UI血条现实
 void AMobaCharacterBase::Respawn()
 {
 	OnRespawn();
+	SetRagdollEnabled(false);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	GetMesh()->GetAnimInstance()->StopAllMontages(0.f);
+	SetStatusGaugeEnabled(true);
+
+	if (MobaAsc)
+	{
+		MobaAsc->ApplyFullStatEffect();
+	}
 }
 
 void AMobaCharacterBase::OnDead()
@@ -184,4 +204,36 @@ void AMobaCharacterBase::OnDead()
 
 void AMobaCharacterBase::OnRespawn()
 {
+}
+
+void AMobaCharacterBase::DeathMontageFinished()
+{
+	SetRagdollEnabled(true);
+}
+
+void AMobaCharacterBase::SetRagdollEnabled(bool bIsEnabled)
+{
+	if (bIsEnabled)
+	{
+		GetMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	}
+	else
+	{
+		GetMesh()->SetSimulatePhysics(false);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetMesh()->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		GetMesh()->SetRelativeTransform(MeshRelativeTransform);
+	}
+}
+
+void AMobaCharacterBase::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+	TeamID = NewTeamID;
+}
+
+FGenericTeamId AMobaCharacterBase::GetGenericTeamId() const
+{
+	return TeamID;
 }
