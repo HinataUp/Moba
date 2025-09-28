@@ -124,7 +124,7 @@ void AMobaCharacterBase::PossessedBy(AController* NewController)
 void AMobaCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AMobaCharacterBase,TeamID);
+	DOREPLIFETIME(AMobaCharacterBase, TeamID);
 }
 
 void AMobaCharacterBase::BindGASChangeDelegates()
@@ -191,6 +191,16 @@ void AMobaCharacterBase::Respawn()
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	GetMesh()->GetAnimInstance()->StopAllMontages(0.f);
 	SetStatusGaugeEnabled(true);
+
+	// 复活 重生点
+	if (HasAuthority() && GetController())
+	{
+		TWeakObjectPtr<AActor> StartSpot = GetController()->StartSpot;
+		if (StartSpot.IsValid())
+		{
+			SetActorTransform(StartSpot->GetActorTransform());
+		}
+	}
 
 	if (MobaAsc)
 	{

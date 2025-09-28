@@ -7,6 +7,10 @@
 #include "GenericTeamAgentInterface.h"
 #include "GameFramework/PlayerStart.h"
 
+AMobaGameMode::AMobaGameMode()
+{
+}
+
 APlayerController* AMobaGameMode::SpawnPlayerController(ENetRole InRemoteRole, const FString& Options)
 {
 	APlayerController* NewPlayerController = Super::SpawnPlayerController(InRemoteRole, Options);
@@ -17,20 +21,20 @@ APlayerController* AMobaGameMode::SpawnPlayerController(ENetRole InRemoteRole, c
 		NewPlayerTeamInterface->SetGenericTeamId(TeamId);
 	}
 
-	NewPlayerController->StartSpot = FIndNextStartSpotForTeam(TeamId);
+	NewPlayerController->StartSpot = FindNextStartSpotForTeam(TeamId);
 	return NewPlayerController;
 }
 
-FGenericTeamId AMobaGameMode::GetTeamIDForPlayer(const APlayerController* PlayerController) const
+FGenericTeamId AMobaGameMode::GetTeamIDForPlayer(const APlayerController* PlayerController)
 {
-	static int PlayerCount = 0;
-	++PlayerCount;
-	return FGenericTeamId(PlayerCount % 2);
+	static int PlayerCounter;
+	PlayerCounter++;
+	return FGenericTeamId(PlayerCounter % 2);
 }
 
-AActor* AMobaGameMode::FIndNextStartSpotForTeam(const FGenericTeamId& TeamID) const
+AActor* AMobaGameMode::FindNextStartSpotForTeam(const FGenericTeamId& TeamID) const
 {
-	const FName* StartSpotTag = TeamStartSoptTagMap.Find(TeamID);
+	const FName* StartSpotTag = TeamStartSpotTagMap.Find(TeamID);
 	if (!StartSpotTag)
 	{
 		return nullptr;

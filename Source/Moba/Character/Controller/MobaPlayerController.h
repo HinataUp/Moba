@@ -21,6 +21,7 @@ public:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void AcknowledgePossession(APawn* P) override;
 	virtual void OnUnPossess() override;
+	
 	//将团队代理分配给给定的 TeamID
 	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;
 
@@ -32,7 +33,7 @@ private:
 	void SpawnGameplayUI();
 
 	UPROPERTY()
-	TObjectPtr<AMobaPlayer> Mobaplayer;
+	TObjectPtr<AMobaPlayer> MobaPlayer;
 
 	UPROPERTY(EditDefaultsOnly, Category="UI")
 	TSubclassOf<UMobaGameplayUI> GameplayUIClass;

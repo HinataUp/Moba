@@ -11,11 +11,11 @@
 void AMobaPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-	Mobaplayer = Cast<AMobaPlayer>(InPawn);
-	if (Mobaplayer)
+	MobaPlayer = Cast<AMobaPlayer>(InPawn);
+	if (MobaPlayer)
 	{
-		Mobaplayer->ServerSideInit();
-		Mobaplayer->SetGenericTeamId(TeamID);
+		MobaPlayer->ServerSideInit();
+		MobaPlayer->SetGenericTeamId(TeamID);
 	}
 }
 
@@ -23,10 +23,10 @@ void AMobaPlayerController::OnPossess(APawn* InPawn)
 void AMobaPlayerController::AcknowledgePossession(class APawn* P)
 {
 	Super::AcknowledgePossession(P);
-	Mobaplayer = Cast<AMobaPlayer>(P);
-	if (Mobaplayer)
+	MobaPlayer = Cast<AMobaPlayer>(P);
+	if (MobaPlayer)
 	{
-		Mobaplayer->ClientSideInit();
+		MobaPlayer->ClientSideInit();
 		SpawnGameplayUI();
 	}
 }

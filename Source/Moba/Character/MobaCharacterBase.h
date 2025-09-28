@@ -101,10 +101,10 @@ private:
 	
 // Team
 public:
-	/** Assigns Team Agent to given TeamID */
+	// 将团队代理分配给给定的 TeamID
 	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;
 	
-	/** Retrieve team identifier in form of FGenericTeamId */
+	// 以 FGenericTeamId 的形式检索团队标识符
 	virtual FGenericTeamId GetGenericTeamId() const override;
 private:
 	UPROPERTY(Replicated)

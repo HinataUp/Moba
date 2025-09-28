@@ -13,12 +13,14 @@ UAnimInstance* UMobaGameplayAbilityBase::GetOwnerAnimInstance() const
 }
 
 TArray<FHitResult> UMobaGameplayAbilityBase::GetHitResultFromSweepLocationTargetData(
-	const FGameplayAbilityTargetDataHandle& TargetDataHandle, float SphereSweepRadius, bool bDrawDebug,
-	bool bIgnoreSelf) const
+	const FGameplayAbilityTargetDataHandle& TargetDataHandle, float SphereSweepRadius, ETeamAttitude::Type TargetTeam,
+	bool bDrawDebug, bool bIgnoreSelf) const
 {
 	TArray<FHitResult> OutResults;
 	TSet<AActor*> HitActors;
-	
+
+	IGenericTeamAgentInterface* OwnerTeamInterface = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
+
 	// 扫描蒙太奇 通知中的 所有的slot点，（资产内已经排序）
 	for (const TSharedPtr<FGameplayAbilityTargetData> TargetData : TargetDataHandle.Data)
 	{
@@ -46,6 +48,17 @@ TArray<FHitResult> UMobaGameplayAbilityBase::GetHitResultFromSweepLocationTarget
 			if (HitActors.Contains(Result.GetActor()))
 			{
 				continue;
+			}
+
+			// 避免友伤
+			if (OwnerTeamInterface)
+			{
+				ETeamAttitude::Type OtherActorTeamAttitude = OwnerTeamInterface->GetTeamAttitudeTowards(
+					*Result.GetActor());
+				if (OtherActorTeamAttitude != TargetTeam)
+				{
+					continue; 
+				}
 			}
 
 			HitActors.Add(Result.GetActor());

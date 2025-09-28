@@ -111,9 +111,7 @@ void UGA_Combo::DoDamage(FGameplayEventData Data)
 {
 	// 这里关闭 debug 绘制 检测轨迹了
 	TArray<FHitResult> HitResults = GetHitResultFromSweepLocationTargetData(Data.TargetData,
-	                                                                        TargetSweepSphereRadius,
-	                                                                        false,
-	                                                                        true);
+	                                                                        TargetSweepSphereRadius);
 
 	for (const FHitResult& HitResult : HitResults)
 	{
@@ -129,7 +127,7 @@ void UGA_Combo::DoDamage(FGameplayEventData Data)
 		EffectContext.AddHitResult(HitResult);
 		EffectSpecHandle.Data->SetContext(EffectContext);
 
-		
+
 		ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(),
 		                                CurrentActorInfo,
 		                                CurrentActivationInfo,
