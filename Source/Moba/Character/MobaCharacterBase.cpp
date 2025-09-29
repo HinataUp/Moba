@@ -13,6 +13,8 @@
 #include "Moba/UI/OverHeadStatsGauge.h"
 #include "Moba/Utilities/MobaGameplayTags.h"
 #include "Net/UnrealNetwork.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
 
 
 // Sets default values
@@ -29,6 +31,8 @@ AMobaCharacterBase::AMobaCharacterBase()
 	OverheadUIComponent->SetupAttachment(GetRootComponent());
 
 	BindGASChangeDelegates();
+	PerceptionStimuliSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(
+		"Perception Stimuli Source Component");
 }
 
 // Called when the game starts or when spawned
@@ -98,6 +102,7 @@ void AMobaCharacterBase::ServerSideInit()
 	MobaAsc->InitAbilityActorInfo(this, this);
 	MobaAsc->ApplyInitialEffects();
 	MobaAsc->GiveInitialAbilities();
+	PerceptionStimuliSourceComponent->RegisterForSense(UAISense_Sight::StaticClass());
 }
 
 void AMobaCharacterBase::ClientSideInit()
@@ -178,15 +183,18 @@ void AMobaCharacterBase::StartDeathSequence()
 	SetStatusGaugeEnabled(false);
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetAIPerceptionStimuliSourceEnabled(false); // 死亡禁用 AI 视觉
 }
 
 
 // 重生后 启用 物理碰撞查询 以及 设置人物 恢复为 walk 状态
 // 禁用蒙太奇动画，并重新启用 头顶UI血条现实
+// 默认重生 启用AI 视觉组件功能
 void AMobaCharacterBase::Respawn()
 {
 	OnRespawn();
 	SetRagdollEnabled(false);
+	SetAIPerceptionStimuliSourceEnabled(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	GetMesh()->GetAnimInstance()->StopAllMontages(0.f);
@@ -246,4 +254,21 @@ void AMobaCharacterBase::SetGenericTeamId(const FGenericTeamId& NewTeamID)
 FGenericTeamId AMobaCharacterBase::GetGenericTeamId() const
 {
 	return TeamID;
+}
+
+void AMobaCharacterBase::SetAIPerceptionStimuliSourceEnabled(bool bIsEnabled)
+{
+	if (!PerceptionStimuliSourceComponent)
+	{
+		return;
+	}
+
+	if (bIsEnabled)
+	{
+		PerceptionStimuliSourceComponent->RegisterWithPerceptionSystem();
+	}
+	else
+	{
+		PerceptionStimuliSourceComponent->UnregisterFromPerceptionSystem();
+	}
 }

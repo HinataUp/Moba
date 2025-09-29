@@ -98,15 +98,25 @@ private:
 	void DeathMontageFinished();
 	void SetRagdollEnabled(bool bIsEnabled);
 
-	
-// Team
+
+	// Team
 public:
 	// 将团队代理分配给给定的 TeamID
 	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;
-	
+
 	// 以 FGenericTeamId 的形式检索团队标识符
 	virtual FGenericTeamId GetGenericTeamId() const override;
+
 private:
 	UPROPERTY(Replicated)
 	FGenericTeamId TeamID;
+
+	// AI
+private:
+	// AI组件
+	UPROPERTY()
+	class UAIPerceptionStimuliSourceComponent* PerceptionStimuliSourceComponent;
+
+	// 设置AI视觉 是否启用
+	void SetAIPerceptionStimuliSourceEnabled(bool bIsEnabled);
 };
